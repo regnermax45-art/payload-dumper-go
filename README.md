@@ -11,6 +11,9 @@ See how fast payload-dumper-go is: https://imgur.com/a/X6HKJT4. (MacBook Pro 16-
 - Incredibly fast decompression. All decompression progresses are executed in parallel.
 - Payload checksum verification.
 - Support original zip package that contains payload.bin.
+- **NEW**: Dual payload ROM porting support with multiple porting strategies.
+- **NEW**: Intelligent partition selection and merging capabilities.
+- **NEW**: Comprehensive porting reports with detailed analysis.
 
 ### Cautions
 
@@ -60,10 +63,61 @@ $ brew install payload-dumper-go
 
 ## Usage
 
+### Single Payload Mode (Original)
+
 Run the following command in your terminal:
 
 ```
 payload-dumper-go /path/to/payload.bin
+```
+
+### ROM Porting Mode (NEW)
+
+Extract and port partitions from two payload files:
+
+```bash
+# Basic ROM porting (Payload1 takes precedence)
+payload-dumper-go -port rom1.bin rom2.bin
+
+# Use size-based strategy (larger partitions preferred)
+payload-dumper-go -port -strategy size rom1.bin rom2.bin
+
+# Selective porting with custom partition mapping
+payload-dumper-go -port -strategy selective -partition-map "system:payload2,vendor:payload1,boot:payload2" rom1.bin rom2.bin
+
+# Hybrid strategy with intelligent selection
+payload-dumper-go -port -strategy hybrid rom1.bin rom2.bin
+
+# List partitions without extracting
+payload-dumper-go -port -list rom1.bin rom2.bin
+
+# Custom output directory with detailed report
+payload-dumper-go -port -output ./ported_rom -detailed-report rom1.bin rom2.bin
+```
+
+### ROM Porting Strategies
+
+- **Priority** (default): Payload1 takes precedence when partitions exist in both
+- **Size**: Use the larger partition when both payloads contain the same partition
+- **Selective**: Use custom partition mapping to specify which payload to use for each partition
+- **Hybrid**: Intelligent selection based on partition type (critical partitions use size-based selection)
+
+### Output
+
+ROM porting mode generates:
+- **Ported IMG files**: Complete partition images with `_ported.img` suffix
+- **Porting report**: JSON report with detailed analysis (`porting_report.json`)
+- **Console summary**: Real-time progress and final summary
+
+Example output structure:
+```
+ported_20241227_143022/
+├── system_ported.img
+├── vendor_ported.img
+├── boot_ported.img
+├── recovery_ported.img
+├── ...
+└── porting_report.json
 ```
 
 ## Performance
